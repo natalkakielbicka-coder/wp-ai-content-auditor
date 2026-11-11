@@ -10,6 +10,14 @@ class WP_AI_Content_Auditor_Plugin {
 
     private string $version;
 
+    private array $supported_post_types = [
+        'post',
+        'page',
+        'product',
+        'event',
+        'portfolio'
+    ];
+
     public function __construct() {
         $this->plugin_name = 'WP AI Content Auditor';
         $this->version = '0.1.0';
@@ -30,31 +38,18 @@ class WP_AI_Content_Auditor_Plugin {
     }
 
     public function is_supported_post_type(string $post_type): bool {
+        return in_array($post_type, $this->supported_post_types, true);
+    }
 
-        if ($post_type === 'post') {
-            return true;
-        }
-
-        if ($post_type === 'page') {
-            return true;
-        }
-
-        if ($post_type === 'product') {
-            return true;
-        }
-
-        return false;
+    public function get_supported_post_types(): array {
+        return $this->supported_post_types;
     }
 
     public function run(): void {
         add_action('admin_notices', array($this, 'show_notice'));
     }
-
+    
     public function show_notice(): void {
-
-        $post_supported = $this->is_supported_post_type('post');
-        $page_supported = $this->is_supported_post_type('page');
-        $product_supported = $this->is_supported_post_type('product');
 
         $message = $this->get_plugin_info() . ' działa!';
 
@@ -63,12 +58,11 @@ class WP_AI_Content_Auditor_Plugin {
         echo '</p>';
 
         echo '<p>Obsługiwane typy treści:</p>';
-
         echo '<ul>';
 
-        echo '<li>Post: ' . ($post_supported ? 'TAK' : 'NIE') . '</li>';
-        echo '<li>Page: ' . ($page_supported ? 'TAK' : 'NIE') . '</li>';
-        echo '<li>Product: ' . ($product_supported ? 'TAK' : 'NIE') . '</li>';
+        foreach ($this->get_supported_post_types() as $post_type) {
+            echo '<li>' . esc_html($post_type) . '</li>';
+        }
 
         echo '</ul></div>';
     }
