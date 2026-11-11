@@ -20,9 +20,12 @@ class Plugin {
         'portfolio'
     ];
 
-    public function __construct() {
+    private ContentAnalyzer $analyzer;
+
+    public function __construct(ContentAnalyzer $analyzer) {
         $this->plugin_name = 'WP AI Content Auditor';
         $this->version = '0.1.0';
+        $this->analyzer = $analyzer;
     }
 
     public function get_plugin_name(): string {
@@ -52,19 +55,31 @@ class Plugin {
     }
     
     public function show_notice(): void {
-        $message = $this->get_plugin_info() . ' działa!';
 
-        echo '<div class="notice notice-success"><p>';
-        echo esc_html($message);
+        $content = 'WordPress pozwala tworzyć własne wtyczki PHP.';
+
+        $word_count = $this->analyzer->count_words($content);
+
+        $is_long = $this->analyzer->is_long_content($content);
+
+        echo '<div class="notice notice-success">';
+
+        echo '<p>';
+        echo esc_html($this->get_plugin_info() . ' działa!');
         echo '</p>';
 
-        echo '<p>Obsługiwane typy treści:</p>';
-        echo '<ul>';
+        echo '<p>Analizowany tekst: ';
+        echo esc_html($content);
+        echo '</p>';
 
-        foreach ($this->get_supported_post_types() as $post_type) {
-            echo '<li>' . esc_html($post_type) . '</li>';
-        }
+        echo '<p>Liczba słów: ';
+        echo esc_html((string) $word_count);
+        echo '</p>';
 
-        echo '</ul></div>';
+        echo '<p>Długi tekst: ';
+        echo $is_long ? 'TAK' : 'NIE';
+        echo '</p>';
+
+        echo '</div>';
     }
 }

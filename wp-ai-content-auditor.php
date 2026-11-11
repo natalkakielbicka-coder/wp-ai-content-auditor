@@ -15,6 +15,8 @@ if (!defined('ABSPATH')) {
 
 require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
 
-$plugin = new \WPAuditor\Plugin();
+$analyzer = new \WPAuditor\ContentAnalyzer();
+
+$plugin = new \WPAuditor\Plugin($analyzer);
 
 $plugin->run();
