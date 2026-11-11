@@ -6,27 +6,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class ContentAnalyzer implements AnalyzerInterface {
+class ContentAnalyzer extends BaseAnalyzer implements AnalyzerInterface {
 
-    public function count_words(string $content): int {
+    protected function normalize_content(string $content): string {
 
-        $content = strip_shortcodes($content);
+        $content = str_replace("\u{00A0}", ' ', $content);
 
-        $content = wp_strip_all_tags($content);
-
-        $content = trim($content);
-
-        if ($content === '') {
-            return 0;
-        }
-
-        $words = preg_split('/\s+/u', $content);
-
-        if ($words === false) {
-            return 0;
-        }
-
-        return count($words);
+        return parent::normalize_content($content);
     }
 
     public function is_long_content(string $content): bool {

@@ -64,4 +64,25 @@ final class ContentAnalyzerTest extends TestCase {
 
         $this->assertTrue($result);
     }
+
+    public function test_inherits_from_base_analyzer(): void {
+
+        $analyzer = new ContentAnalyzer();
+
+        $this->assertInstanceOf(
+            \WPAuditor\BaseAnalyzer::class,
+            $analyzer
+        );
+    }
+
+    public function test_counts_words_with_non_breaking_spaces(): void {
+
+        $analyzer = new ContentAnalyzer();
+
+        $content = "Ala\u{00A0}ma\u{00A0}kota";
+
+        $result = $analyzer->count_words($content);
+
+        $this->assertSame(3, $result);
+    }
 }
