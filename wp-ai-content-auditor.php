@@ -15,6 +15,6 @@ if (!defined('ABSPATH')) {
 
 require_once plugin_dir_path(__FILE__) . 'includes/class-plugin.php';
 
-$plugin = new WP_AI_Content_Auditor_Plugin();
+$plugin = new \WPAuditor\Plugin();
 
 $plugin->run();

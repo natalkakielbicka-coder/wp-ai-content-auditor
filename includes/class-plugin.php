@@ -1,10 +1,12 @@
 <?php
 
+namespace WPAuditor;
+
 if (!defined('ABSPATH')) {
     exit;
 }
 
-class WP_AI_Content_Auditor_Plugin {
+class Plugin {
 
     private string $plugin_name;
 
@@ -46,11 +48,10 @@ class WP_AI_Content_Auditor_Plugin {
     }
 
     public function run(): void {
-        add_action('admin_notices', array($this, 'show_notice'));
+        add_action('admin_notices', [$this, 'show_notice']);
     }
     
     public function show_notice(): void {
-
         $message = $this->get_plugin_info() . ' działa!';
 
         echo '<div class="notice notice-success"><p>';
