@@ -2,6 +2,8 @@
 
 namespace WPAuditor;
 
+use WPAuditor\Admin\AdminPage;
+
 if (!defined('ABSPATH')) {
     exit;
 }
@@ -22,10 +24,16 @@ class Plugin {
 
     private AnalyzerInterface $analyzer;
 
-    public function __construct(AnalyzerInterface $analyzer) {
+    private AdminPage $admin_page;
+
+    public function __construct(
+        AnalyzerInterface $analyzer,
+        AdminPage $admin_page
+    ) {
         $this->plugin_name = 'WP AI Content Auditor';
         $this->version = '0.1.0';
         $this->analyzer = $analyzer;
+        $this->admin_page = $admin_page;
     }
 
     public function get_plugin_name(): string {
@@ -51,7 +59,7 @@ class Plugin {
     }
 
     public function run(): void {
-        add_action('admin_notices', [$this, 'show_notice']);
+        $this->admin_page->register();
     }
     
     public function show_notice(): void {
