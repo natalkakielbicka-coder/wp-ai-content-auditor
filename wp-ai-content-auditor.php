@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-require_once plugin_dir_path(__FILE__) . 'includes/class-plugin.php';
+require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
 
 $plugin = new \WPAuditor\Plugin();
 

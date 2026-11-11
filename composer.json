@@ -1,0 +1,14 @@
+{
+  "name": "wp-ai/content-auditor",
+  "description": "AI-powered WordPress content auditing plugin",
+  "type": "wordpress-plugin",
+  "license": "proprietary",
+  "require": {
+    "php": "^8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "WPAuditor\\": "src/"
+    }
+  }
+}
