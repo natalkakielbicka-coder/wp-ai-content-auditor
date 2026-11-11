@@ -20,9 +20,9 @@ class Plugin {
         'portfolio'
     ];
 
-    private ContentAnalyzer $analyzer;
+    private AnalyzerInterface $analyzer;
 
-    public function __construct(ContentAnalyzer $analyzer) {
+    public function __construct(AnalyzerInterface $analyzer) {
         $this->plugin_name = 'WP AI Content Auditor';
         $this->version = '0.1.0';
         $this->analyzer = $analyzer;
@@ -62,6 +62,8 @@ class Plugin {
 
         $is_long = $this->analyzer->is_long_content($content);
 
+        $has_content = $this->analyzer->has_content($content);
+
         echo '<div class="notice notice-success">';
 
         echo '<p>';
@@ -78,6 +80,10 @@ class Plugin {
 
         echo '<p>Długi tekst: ';
         echo $is_long ? 'TAK' : 'NIE';
+        echo '</p>';
+
+        echo '<p>Ma content: ';
+        echo $has_content ? 'TAK' : 'NIE';
         echo '</p>';
 
         echo '</div>';

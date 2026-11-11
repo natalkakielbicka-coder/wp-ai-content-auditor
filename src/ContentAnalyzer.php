@@ -6,7 +6,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class ContentAnalyzer {
+class ContentAnalyzer implements AnalyzerInterface {
 
     public function count_words(string $content): int {
 
@@ -31,5 +31,9 @@ class ContentAnalyzer {
 
     public function is_long_content(string $content): bool {
         return $this->count_words($content) >= 300;
+    }
+
+    public function has_content(string $content): bool {
+        return $this->count_words($content) >= 1;
     }
 }
