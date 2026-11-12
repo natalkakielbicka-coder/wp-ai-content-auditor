@@ -127,4 +127,8 @@ class LinkAnalyzer {
 
         return count($result['external']);
     }
+
+    public function has_external_links(string $html): bool {
+        return $this->count_external($html) > 0;
+    }
 }
