@@ -97,4 +97,10 @@ class ImageAnalyzer {
 
         return $issues;
     }
+
+    public function has_missing_alt(string $html): bool {
+        $result = $this->analyze($html);
+
+        return $result['missing_alt'] > 0;
+    }
 }
