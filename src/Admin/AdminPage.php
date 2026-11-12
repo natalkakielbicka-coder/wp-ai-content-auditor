@@ -1,7 +1,7 @@
 <?php
 namespace WPAuditor\Admin;
 
-use WPAuditor\AnalyzerInterface;
+use WPAuditor\ContentAuditor;
 use WP_Query;
 
 if (!defined('ABSPATH')) {
@@ -9,11 +9,11 @@ if (!defined('ABSPATH')) {
 }
 
 class AdminPage {
+    
+    private ContentAuditor $auditor;
 
-    private AnalyzerInterface $analyzer;
-
-    public function __construct(AnalyzerInterface $analyzer) {
-        $this->analyzer = $analyzer;
+    public function __construct(ContentAuditor $auditor) {
+        $this->auditor = $auditor;
     }
 
     public function register(): void {
@@ -106,39 +106,46 @@ class AdminPage {
 
         echo '</div>';
     }
-
+    
     private function render_result(int $post_id): void {
 
-        $content = get_post_field('post_content', $post_id, 'raw');
+        $result = $this->auditor->audit($post_id);
 
-        if (!is_string($content)) {
-            return;
-        }
+        echo '<hr>';
 
-        $word_count = $this->analyzer->count_words($content);
-
-        $is_long = $this->analyzer->is_long_content($content);
-
-        $post_type = get_post_type($post_id);
-
-        $type_label = $post_type === 'post' ? 'Wpis' : 'Strona';
-
-        echo '<h2>Wynik analizy</h2>';
-
-        echo '<p><strong>Typ treści:</strong> ';
-        echo esc_html($type_label);
-        echo '</p>';
+        echo '<h2>Wynik audytu</h2>';
 
         echo '<p><strong>Tytuł:</strong> ';
-        echo esc_html(get_the_title($post_id));
+        echo esc_html($result->title);
         echo '</p>';
 
         echo '<p><strong>Liczba słów:</strong> ';
-        echo esc_html((string) $word_count);
+        echo esc_html((string) $result->word_count);
         echo '</p>';
 
-        echo '<p><strong>Długi tekst:</strong> ';
-        echo $is_long ? 'TAK' : 'NIE';
+        echo '<p><strong>Obrazek wyróżniający:</strong> ';
+        echo $result->has_thumbnail ? 'TAK' : 'NIE';
         echo '</p>';
+
+        echo '<p><strong>Liczba problemów:</strong> ';
+        echo esc_html((string) $result->get_issues_count());
+        echo '</p>';
+
+        if ($result->has_issues()) {
+
+            echo '<h3>Wykryte problemy</h3>';
+
+            echo '<ul>';
+
+            foreach ($result->issues as $issue) {
+                echo '<li>' . esc_html($issue) . '</li>';
+            }
+
+            echo '</ul>';
+
+        } else {
+
+            echo '<p>Nie wykryto problemów w podstawowym audycie.</p>';
+        }
     }
 }
