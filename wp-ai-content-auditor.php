@@ -17,7 +17,12 @@ require_once plugin_dir_path(__FILE__) . 'vendor/autoload.php';
 
 $analyzer = new \WPAuditor\ContentAnalyzer();
 
-$auditor = new \WPAuditor\ContentAuditor($analyzer);
+$heading_analyzer = new \WPAuditor\HeadingAnalyzer();
+
+$auditor = new \WPAuditor\ContentAuditor(
+    $analyzer,
+    $heading_analyzer
+);
 
 $admin_page = new \WPAuditor\Admin\AdminPage($auditor);
 

@@ -8,9 +8,10 @@ if (!defined('ABSPATH')) {
 }
 
 class ContentAuditor {
-
+    
     public function __construct(
-        private AnalyzerInterface $analyzer
+        private AnalyzerInterface $analyzer,
+        private HeadingAnalyzer $heading_analyzer
     ) {
     }
 
@@ -67,6 +68,10 @@ class ContentAuditor {
                 'penalty' => 20,
             ];
         }
+
+        $heading_issues = $this->heading_analyzer->get_issues($content);
+
+        $issues = array_merge($issues, $heading_issues);
 
         return new AuditResult(
             $post_id,
