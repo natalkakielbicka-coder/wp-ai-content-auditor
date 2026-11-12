@@ -8,7 +8,7 @@ if (!defined('ABSPATH')) {
 }
 
 class ContentAuditor {
-    
+
     public function __construct(
         private AnalyzerInterface $analyzer,
         private HeadingAnalyzer $heading_analyzer,
@@ -42,6 +42,7 @@ class ContentAuditor {
 
         $issues = [];
 
+        // Analiza tytułu
         if ($title === '') {
             $issues[] = [
                 'category' => 'Tytuł',
@@ -56,6 +57,7 @@ class ContentAuditor {
             ];
         }
 
+        // Analiza długości treści
         if ($word_count < 300) {
             $issues[] = [
                 'category' => 'Treść',
@@ -64,6 +66,7 @@ class ContentAuditor {
             ];
         }
 
+        // Sprawdzenie obrazka wyróżniającego
         if (!$has_thumbnail) {
             $issues[] = [
                 'category' => 'Obrazy',
@@ -72,24 +75,29 @@ class ContentAuditor {
             ];
         }
 
+        // Analiza struktury nagłówków
         $heading_issues = $this->heading_analyzer->get_issues($content);
 
         $issues = array_merge($issues, $heading_issues);
 
+        // Analiza linków
         $links = $this->link_analyzer->analyze($content);
 
         $internal_links = count($links['internal']);
-
+        
         $external_links = count($links['external']);
 
+        // Analiza obrazków i atrybutów ALT
         $images = $this->image_analyzer->analyze($content);
 
         $image_issues = $this->image_analyzer->get_issues($content);
 
-        $seo_meta = $this->seo_meta_analyzer->analyze($post_id);
-
         $issues = array_merge($issues, $image_issues);
 
+        // Analiza metadanych SEO
+        $seo_meta = $this->seo_meta_analyzer->analyze($post_id);
+
+        // Zwrócenie kompletnego wyniku audytu
         return new AuditResult(
             $post_id,
             $title,
