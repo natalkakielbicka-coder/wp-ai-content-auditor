@@ -13,7 +13,8 @@ class ContentAuditor {
         private AnalyzerInterface $analyzer,
         private HeadingAnalyzer $heading_analyzer,
         private LinkAnalyzer $link_analyzer,
-        private ImageAnalyzer $image_analyzer
+        private ImageAnalyzer $image_analyzer,
+        private SeoMetaAnalyzer $seo_meta_analyzer
     ) {
     }
 
@@ -85,6 +86,8 @@ class ContentAuditor {
 
         $image_issues = $this->image_analyzer->get_issues($content);
 
+        $seo_meta = $this->seo_meta_analyzer->analyze($post_id);
+
         $issues = array_merge($issues, $image_issues);
 
         return new AuditResult(
@@ -95,7 +98,8 @@ class ContentAuditor {
             $issues,
             $internal_links,
             $external_links,
-            $images
+            $images,
+            $seo_meta
         );
     }
 }

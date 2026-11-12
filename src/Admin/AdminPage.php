@@ -157,6 +157,49 @@ class AdminPage {
             echo '</p>';
         }
 
+        if (!empty($result->seo_meta)) {
+
+            $meta = $result->seo_meta;
+
+            echo '<hr>';
+            echo '<h2>Metadane SEO</h2>';
+
+            if ($meta['provider'] !== 'yoast') {
+
+                echo '<p>Yoast SEO nie jest aktywny.</p>';
+
+            } else {
+
+                echo '<p><strong>SEO Title:</strong> ';
+
+                if ($meta['title_status'] === 'custom') {
+                    echo esc_html($meta['title']);
+                } else {
+                    echo 'Brak indywidualnej wartości (szablon Yoast).';
+                }
+
+                echo '</p>';
+
+                echo '<p><strong>Długość zapisanego tytułu:</strong> ';
+                echo esc_html((string) $meta['title_length']);
+                echo ' znaków</p>';
+
+                echo '<p><strong>Meta Description:</strong> ';
+
+                if ($meta['description_status'] === 'custom') {
+                    echo esc_html($meta['description']);
+                } else {
+                    echo 'Brak indywidualnej wartości (możliwy fallback).';
+                }
+
+                echo '</p>';
+
+                echo '<p><strong>Długość zapisanego opisu:</strong> ';
+                echo esc_html((string) $meta['description_length']);
+                echo ' znaków</p>';
+            }
+        }
+
         echo '<p><strong>Obrazek wyróżniający:</strong> ';
         echo $result->has_thumbnail ? 'TAK' : 'NIE';
         echo '</p>';

@@ -23,11 +23,14 @@ $link_analyzer = new \WPAuditor\LinkAnalyzer(home_url());
 
 $image_analyzer = new \WPAuditor\ImageAnalyzer();
 
+$seo_meta_analyzer = new \WPAuditor\SeoMetaAnalyzer();
+
 $auditor = new \WPAuditor\ContentAuditor(
     $analyzer,
     $heading_analyzer,
     $link_analyzer,
-    $image_analyzer
+    $image_analyzer,
+    $seo_meta_analyzer
 );
 
 $admin_page = new \WPAuditor\Admin\AdminPage($auditor);

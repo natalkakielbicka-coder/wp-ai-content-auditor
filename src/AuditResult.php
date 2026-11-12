@@ -15,7 +15,8 @@ class AuditResult {
         public readonly array $issues,
         public readonly int $internal_links = 0,
         public readonly int $external_links = 0,
-        public readonly array $images = []
+        public readonly array $images = [],
+        public readonly array $seo_meta = []
     ) {
     }
 
