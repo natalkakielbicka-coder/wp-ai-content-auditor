@@ -132,6 +132,31 @@ class AdminPage {
         echo esc_html((string) $result->external_links);
         echo '</p>';
 
+        if (!empty($result->images)) {
+
+            echo '<h3>Analiza obrazków</h3>';
+
+            echo '<p><strong>Wszystkie obrazki:</strong> ';
+            echo esc_html((string) $result->images['total']);
+            echo '</p>';
+
+            echo '<p><strong>Z opisem ALT:</strong> ';
+            echo esc_html((string) $result->images['with_alt']);
+            echo '</p>';
+
+            echo '<p><strong>Z pustym ALT:</strong> ';
+            echo esc_html((string) $result->images['empty_alt']);
+            echo '</p>';
+
+            echo '<p><strong>Bez atrybutu ALT:</strong> ';
+            echo esc_html((string) $result->images['missing_alt']);
+            echo '</p>';
+
+            echo '<p><strong>ALT zawierający tylko spacje:</strong> ';
+            echo esc_html((string) $result->images['whitespace_alt']);
+            echo '</p>';
+        }
+
         echo '<p><strong>Obrazek wyróżniający:</strong> ';
         echo $result->has_thumbnail ? 'TAK' : 'NIE';
         echo '</p>';

@@ -12,7 +12,8 @@ class ContentAuditor {
     public function __construct(
         private AnalyzerInterface $analyzer,
         private HeadingAnalyzer $heading_analyzer,
-        private LinkAnalyzer $link_analyzer
+        private LinkAnalyzer $link_analyzer,
+        private ImageAnalyzer $image_analyzer
     ) {
     }
 
@@ -80,6 +81,12 @@ class ContentAuditor {
 
         $external_links = count($links['external']);
 
+        $images = $this->image_analyzer->analyze($content);
+
+        $image_issues = $this->image_analyzer->get_issues($content);
+
+        $issues = array_merge($issues, $image_issues);
+
         return new AuditResult(
             $post_id,
             $title,
@@ -87,7 +94,8 @@ class ContentAuditor {
             $has_thumbnail,
             $issues,
             $internal_links,
-            $external_links
+            $external_links,
+            $images
         );
     }
 }
