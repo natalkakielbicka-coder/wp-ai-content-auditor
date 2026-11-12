@@ -19,9 +19,12 @@ $analyzer = new \WPAuditor\ContentAnalyzer();
 
 $heading_analyzer = new \WPAuditor\HeadingAnalyzer();
 
+$link_analyzer = new \WPAuditor\LinkAnalyzer(home_url());
+
 $auditor = new \WPAuditor\ContentAuditor(
     $analyzer,
-    $heading_analyzer
+    $heading_analyzer,
+    $link_analyzer
 );
 
 $admin_page = new \WPAuditor\Admin\AdminPage($auditor);

@@ -124,6 +124,14 @@ class AdminPage {
         echo esc_html((string) $result->word_count);
         echo '</p>';
 
+        echo '<p><strong>Linki wewnętrzne:</strong> ';
+        echo esc_html((string) $result->internal_links);
+        echo '</p>';
+
+        echo '<p><strong>Linki zewnętrzne:</strong> ';
+        echo esc_html((string) $result->external_links);
+        echo '</p>';
+
         echo '<p><strong>Obrazek wyróżniający:</strong> ';
         echo $result->has_thumbnail ? 'TAK' : 'NIE';
         echo '</p>';

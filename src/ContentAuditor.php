@@ -11,7 +11,8 @@ class ContentAuditor {
     
     public function __construct(
         private AnalyzerInterface $analyzer,
-        private HeadingAnalyzer $heading_analyzer
+        private HeadingAnalyzer $heading_analyzer,
+        private LinkAnalyzer $link_analyzer
     ) {
     }
 
@@ -73,12 +74,20 @@ class ContentAuditor {
 
         $issues = array_merge($issues, $heading_issues);
 
+        $links = $this->link_analyzer->analyze($content);
+
+        $internal_links = count($links['internal']);
+
+        $external_links = count($links['external']);
+
         return new AuditResult(
             $post_id,
             $title,
             $word_count,
             $has_thumbnail,
-            $issues
+            $issues,
+            $internal_links,
+            $external_links
         );
     }
 }

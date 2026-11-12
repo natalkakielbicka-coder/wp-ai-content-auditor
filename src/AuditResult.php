@@ -12,7 +12,9 @@ class AuditResult {
         public readonly string $title,
         public readonly int $word_count,
         public readonly bool $has_thumbnail,
-        public readonly array $issues
+        public readonly array $issues,
+        public readonly int $internal_links = 0,
+        public readonly int $external_links = 0
     ) {
     }
 
