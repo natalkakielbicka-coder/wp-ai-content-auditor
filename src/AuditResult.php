@@ -23,4 +23,15 @@ class AuditResult {
     public function get_issues_count(): int {
         return count($this->issues);
     }
+
+    public function get_score(): int {
+
+        $score = 100;
+
+        foreach ($this->issues as $issue) {
+            $score -= $issue['penalty'];
+        }
+
+        return max(0, $score);
+    }
 }

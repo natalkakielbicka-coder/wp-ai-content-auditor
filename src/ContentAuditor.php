@@ -31,25 +31,41 @@ class ContentAuditor {
         }
 
         $title = trim($post->post_title);
-
         $content = $post->post_content;
 
         $word_count = $this->analyzer->count_words($content);
-
         $has_thumbnail = has_post_thumbnail($post_id);
 
         $issues = [];
 
         if ($title === '') {
-            $issues[] = 'Brak tytułu wpisu.';
+            $issues[] = [
+                'category' => 'Tytuł',
+                'message' => 'Brak tytułu wpisu.',
+                'penalty' => 30,
+            ];
+        } elseif (mb_strlen($title) < 15) {
+            $issues[] = [
+                'category' => 'Tytuł',
+                'message' => 'Tytuł jest bardzo krótki.',
+                'penalty' => 20,
+            ];
         }
 
         if ($word_count < 300) {
-            $issues[] = 'Treść zawiera mniej niż 300 słów.';
+            $issues[] = [
+                'category' => 'Treść',
+                'message' => 'Treść zawiera mniej niż 300 słów.',
+                'penalty' => 30,
+            ];
         }
 
         if (!$has_thumbnail) {
-            $issues[] = 'Brak obrazka wyróżniającego.';
+            $issues[] = [
+                'category' => 'Obrazy',
+                'message' => 'Brak obrazka wyróżniającego.',
+                'penalty' => 20,
+            ];
         }
 
         return new AuditResult(

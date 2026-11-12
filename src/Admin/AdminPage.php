@@ -111,8 +111,9 @@ class AdminPage {
 
         $result = $this->auditor->audit($post_id);
 
-        echo '<hr>';
+        $score = $result->get_score();
 
+        echo '<hr>';
         echo '<h2>Wynik audytu</h2>';
 
         echo '<p><strong>Tytuł:</strong> ';
@@ -127,6 +128,10 @@ class AdminPage {
         echo $result->has_thumbnail ? 'TAK' : 'NIE';
         echo '</p>';
 
+        echo '<h2>Ocena treści: ';
+        echo esc_html((string) $score);
+        echo '/100</h2>';
+
         echo '<p><strong>Liczba problemów:</strong> ';
         echo esc_html((string) $result->get_issues_count());
         echo '</p>';
@@ -134,11 +139,23 @@ class AdminPage {
         if ($result->has_issues()) {
 
             echo '<h3>Wykryte problemy</h3>';
-
             echo '<ul>';
 
             foreach ($result->issues as $issue) {
-                echo '<li>' . esc_html($issue) . '</li>';
+
+                echo '<li>';
+
+                echo '<strong>';
+                echo esc_html($issue['category']);
+                echo ':</strong> ';
+
+                echo esc_html($issue['message']);
+
+                echo ' (-';
+                echo esc_html((string) $issue['penalty']);
+                echo ' pkt)';
+
+                echo '</li>';
             }
 
             echo '</ul>';
