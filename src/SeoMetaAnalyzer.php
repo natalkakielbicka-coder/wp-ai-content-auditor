@@ -58,4 +58,10 @@ class SeoMetaAnalyzer {
 
         return $result;
     }
+
+    public function has_custom_description(int $post_id): bool {
+        $result = $this->analyze($post_id);
+
+        return $result['description_status'] === 'custom';
+    }
 }
