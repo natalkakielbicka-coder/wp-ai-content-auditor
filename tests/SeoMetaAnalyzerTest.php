@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use PHPUnit\Framework\TestCase;
@@ -173,6 +174,142 @@ final class SeoMetaAnalyzerTest extends TestCase {
 
         $this->assertFalse(
             $this->analyzer->has_custom_description(10)
+        );
+    }
+
+    public static function descriptionLengthProvider(): array {
+        return [
+            '69 characters' => [69, 'short'],
+            '70 characters' => [70, 'ok'],
+            '120 characters' => [120, 'ok'],
+            '160 characters' => [160, 'ok'],
+            '161 characters' => [161, 'long'],
+        ];
+    }
+
+    #[DataProvider('descriptionLengthProvider')]
+    public function test_classifies_description_length(
+        int $length,
+        string $expected
+    ): void {
+
+        $this->enable_yoast();
+
+        $GLOBALS['seo_test_meta'][10] = [
+            '_yoast_wpseo_metadesc' => str_repeat('B', $length),
+        ];
+
+        $result = $this->analyzer->analyze(10);
+
+        $this->assertSame(
+            $length,
+            $result['description_length']
+        );
+
+        $this->assertSame(
+            $expected,
+            $result['description_length_status']
+        );
+    }
+
+    public static function titleLengthProvider(): array {
+        return [
+            '29 characters' => [29, 'short'],
+            '30 characters' => [30, 'ok'],
+            '45 characters' => [45, 'ok'],
+            '60 characters' => [60, 'ok'],
+            '61 characters' => [61, 'long'],
+        ];
+    }
+
+    #[DataProvider('titleLengthProvider')]
+    public function test_classifies_seo_title_length(
+        int $length,
+        string $expected
+    ): void {
+
+        $this->enable_yoast();
+
+        $GLOBALS['seo_test_meta'][10] = [
+            '_yoast_wpseo_title' => str_repeat('A', $length),
+        ];
+
+        $result = $this->analyzer->analyze(10);
+
+        $this->assertSame(
+            $length,
+            $result['title_length']
+        );
+
+        $this->assertSame(
+            $expected,
+            $result['title_length_status']
+        );
+    }
+
+    public function test_does_not_check_yoast_title_variables(): void {
+
+        $this->enable_yoast();
+
+        $GLOBALS['seo_test_meta'][10] = [
+            '_yoast_wpseo_title' => '%%title%% %%sep%% %%sitename%%',
+        ];
+
+        $result = $this->analyzer->analyze(10);
+
+        $this->assertSame(
+            'not_checked',
+            $result['title_length_status']
+        );
+    }
+
+    public function test_does_not_check_empty_metadata(): void {
+
+        $this->enable_yoast();
+
+        $result = $this->analyzer->analyze(10);
+
+        $this->assertSame(
+            'not_checked',
+            $result['title_length_status']
+        );
+
+        $this->assertSame(
+            'not_checked',
+            $result['description_length_status']
+        );
+    }
+
+    public function test_does_not_check_lengths_without_yoast(): void {
+
+        $result = $this->analyzer->analyze(10);
+
+        $this->assertSame(
+            'not_checked',
+            $result['title_length_status']
+        );
+
+        $this->assertSame(
+            'not_checked',
+            $result['description_length_status']
+        );
+    }
+    
+    public function test_counts_polish_characters_in_length_check(): void {
+
+        $this->enable_yoast();
+
+        $GLOBALS['seo_test_meta'][10] = [
+            '_yoast_wpseo_title' => str_repeat('Ż', 30),
+        ];
+
+        $result = $this->analyzer->analyze(10);
+
+        $this->assertSame(30, $result['title_length']);
+
+        $this->assertSame(
+            'ok',
+            $result['title_length_status']
         );
     }
 }
