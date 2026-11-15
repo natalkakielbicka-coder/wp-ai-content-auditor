@@ -132,6 +132,29 @@ class AdminPage {
         echo esc_html((string) $result->external_links);
         echo '</p>';
 
+        if (!empty($result->link_stats)) {
+
+            $stats = $result->link_stats;
+
+            echo '<h3>Statystyki linków</h3>';
+
+            echo '<p><strong>Unikalne linki wewnętrzne:</strong> ';
+            echo esc_html((string) $stats['internal_unique']);
+            echo '</p>';
+
+            echo '<p><strong>Powtórzenia linków wewnętrznych:</strong> ';
+            echo esc_html((string) $stats['internal_repeated']);
+            echo '</p>';
+
+            echo '<p><strong>Unikalne linki zewnętrzne:</strong> ';
+            echo esc_html((string) $stats['external_unique']);
+            echo '</p>';
+
+            echo '<p><strong>Powtórzenia linków zewnętrznych:</strong> ';
+            echo esc_html((string) $stats['external_repeated']);
+            echo '</p>';
+        }
+
         if (!empty($result->images)) {
 
             echo '<h3>Analiza obrazków</h3>';

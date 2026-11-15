@@ -81,11 +81,11 @@ class ContentAuditor {
         $issues = array_merge($issues, $heading_issues);
 
         // Analiza linków
-        $links = $this->link_analyzer->analyze($content);
+        $link_stats = $this->link_analyzer->get_statistics($content);
 
-        $internal_links = count($links['internal']);
-        
-        $external_links = count($links['external']);
+        $internal_links = $link_stats['internal_total'];
+
+        $external_links = $link_stats['external_total'];
 
         // Analiza obrazków i atrybutów ALT
         $images = $this->image_analyzer->analyze($content);
@@ -110,7 +110,8 @@ class ContentAuditor {
             $internal_links,
             $external_links,
             $images,
-            $seo_meta
+            $seo_meta,
+            $link_stats
         );
     }
 }

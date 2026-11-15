@@ -131,4 +131,31 @@ class LinkAnalyzer {
     public function has_external_links(string $html): bool {
         return $this->count_external($html) > 0;
     }
+
+    public function get_statistics(string $html): array {
+
+        $links = $this->analyze($html);
+
+        $internal = $links['internal'];
+        $external = $links['external'];
+
+        $unique_internal = array_unique($internal);
+        $unique_external = array_unique($external);
+
+        return [
+            'internal_total' => count($internal),
+            'external_total' => count($external),
+            'internal_unique' => count($unique_internal),
+            'external_unique' => count($unique_external),
+            'internal_repeated' => count($internal) - count($unique_internal),
+            'external_repeated' => count($external) - count($unique_external),
+        ];
+    }
+
+    public function has_duplicate_internal_links(string $html): bool {
+
+        $stats = $this->get_statistics($html);
+
+        return $stats['internal_repeated'] > 0;
+    }
 }
