@@ -48,7 +48,7 @@ class HeadingAnalyzer {
 
         return $levels;
     }
-
+    
     public function get_issues(string $html): array {
 
         $levels = $this->get_heading_levels($html);
@@ -56,17 +56,43 @@ class HeadingAnalyzer {
         $issues = [];
 
         $h1_count = count(
-            array_filter($levels, fn($level) => $level === 1)
+            array_filter(
+                $levels,
+                static fn(int $level): bool => $level === 1
+            )
         );
 
         if ($h1_count > 1) {
             $issues[] = [
                 'category' => 'Nagłówki',
-                'message' => 'W treści znajduje się więcej niż jeden H1.',
+                'message' => 'W treści znajduje się więcej niż jeden nagłówek H1.',
                 'penalty' => 15,
             ];
         }
 
+        $jumps = $this->get_heading_jumps($html);
+
+        foreach ($jumps as $jump) {
+
+            $issues[] = [
+                'category' => 'Nagłówki',
+                'message' => sprintf(
+                    'Nieprawidłowy przeskok z H%d do H%d.',
+                    $jump['from'],
+                    $jump['to']
+                ),
+                'penalty' => 10,
+            ];
+        }
+
+        return $issues;
+    }
+
+    public function get_heading_jumps(string $html): array {
+
+        $levels = $this->get_heading_levels($html);
+
+        $jumps = [];
         $previous_level = null;
 
         foreach ($levels as $level) {
@@ -75,18 +101,15 @@ class HeadingAnalyzer {
                 $previous_level !== null &&
                 $level > $previous_level + 1
             ) {
-                $issues[] = [
-                    'category' => 'Nagłówki',
-                    'message' => 'Wykryto przeskok poziomu nagłówków.',
-                    'penalty' => 10,
+                $jumps[] = [
+                    'from' => $previous_level,
+                    'to' => $level,
                 ];
-
-                break;
             }
 
             $previous_level = $level;
         }
 
-        return $issues;
+        return $jumps;
     }
 }
