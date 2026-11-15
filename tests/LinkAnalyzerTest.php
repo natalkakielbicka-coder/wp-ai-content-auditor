@@ -144,4 +144,124 @@ final class LinkAnalyzerTest extends TestCase {
             $this->analyzer->get_link_type($url)
         );
     }
+
+    public function test_counts_unique_internal_links(): void {
+
+        $html = '
+            <a href="/kontakt/">Kontakt</a>
+            <a href="/kontakt/">Kontakt ponownie</a>
+            <a href="/o-nas/">O nas</a>
+        ';
+
+        $stats = $this->analyzer->get_statistics($html);
+
+        $this->assertSame(3, $stats['internal_total']);
+        $this->assertSame(2, $stats['internal_unique']);
+        $this->assertSame(1, $stats['internal_repeated']);
+    }
+
+    public function test_counts_unique_external_links(): void {
+
+        $html = '
+            <a href="https://wordpress.org/">WordPress</a>
+            <a href="https://wordpress.org/">WordPress ponownie</a>
+            <a href="https://github.com/">GitHub</a>
+        ';
+
+        $stats = $this->analyzer->get_statistics($html);
+
+        $this->assertSame(3, $stats['external_total']);
+        $this->assertSame(2, $stats['external_unique']);
+        $this->assertSame(1, $stats['external_repeated']);
+    }
+
+    public function test_counts_mixed_links(): void {
+
+        $html = '
+            <a href="/kontakt/">Kontakt</a>
+            <a href="/kontakt/">Kontakt ponownie</a>
+            <a href="https://wordpress.org/">WordPress</a>
+            <a href="https://github.com/">GitHub</a>
+            <a href="https://github.com/">GitHub ponownie</a>
+        ';
+
+        $stats = $this->analyzer->get_statistics($html);
+
+        $this->assertSame([
+            'internal_total' => 2,
+            'external_total' => 3,
+            'internal_unique' => 1,
+            'external_unique' => 2,
+            'internal_repeated' => 1,
+            'external_repeated' => 1,
+        ], $stats);
+    }
+
+    public function test_empty_content_has_zero_link_statistics(): void {
+
+        $stats = $this->analyzer->get_statistics('');
+
+        $this->assertSame([
+            'internal_total' => 0,
+            'external_total' => 0,
+            'internal_unique' => 0,
+            'external_unique' => 0,
+            'internal_repeated' => 0,
+            'external_repeated' => 0,
+        ], $stats);
+    }
+
+    public function test_treats_different_url_formats_as_unique(): void {
+
+        $html = '
+            <a href="/kontakt/">Kontakt</a>
+            <a href="http://localhost:8080/kontakt/">Kontakt</a>
+        ';
+
+        $stats = $this->analyzer->get_statistics($html);
+
+        $this->assertSame(2, $stats['internal_total']);
+        $this->assertSame(2, $stats['internal_unique']);
+        $this->assertSame(0, $stats['internal_repeated']);
+    }
+
+    public function test_detects_duplicate_internal_links(): void {
+
+        $html = '
+            <a href="/kontakt/">Kontakt</a>
+            <a href="/kontakt/">Kontakt ponownie</a>
+        ';
+
+        $this->assertTrue(
+            $this->analyzer->has_duplicate_internal_links($html)
+        );
+    }
+
+    public function test_detects_no_duplicate_internal_links(): void {
+
+        $html = '
+            <a href="/kontakt/">Kontakt</a>
+            <a href="/o-nas/">O nas</a>
+        ';
+
+        $this->assertFalse(
+            $this->analyzer->has_duplicate_internal_links($html)
+        );
+    }
+
+    public function test_ignored_links_do_not_affect_statistics(): void {
+
+        $html = '
+            <a href="mailto:test@example.com">E-mail</a>
+            <a href="tel:+48123456789">Telefon</a>
+            <a href="">Pusty link</a>
+            <a href="/kontakt/">Kontakt</a>
+        ';
+
+        $stats = $this->analyzer->get_statistics($html);
+
+        $this->assertSame(1, $stats['internal_total']);
+        $this->assertSame(1, $stats['internal_unique']);
+        $this->assertSame(0, $stats['external_total']);
+    }
 }
