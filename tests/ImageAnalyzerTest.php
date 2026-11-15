@@ -209,4 +209,112 @@ final class ImageAnalyzerTest extends TestCase {
         $this->assertSame($missing_alt, $result['missing_alt']);
         $this->assertSame($whitespace_alt, $result['whitespace_alt']);
     }
+
+    public function test_returns_same_issues_with_precalculated_analysis(): void {
+
+        $html = '
+            <img src="a.jpg">
+            <img src="b.jpg" alt="   ">
+            <img src="c.jpg" alt="Poprawny opis">
+        ';
+
+        $analysis = $this->analyzer->analyze($html);
+
+        $issues_without_cache = $this->analyzer->get_issues($html);
+
+        $issues_with_cache = $this->analyzer->get_issues(
+            $html,
+            $analysis
+        );
+
+        $this->assertSame(
+            $issues_without_cache,
+            $issues_with_cache
+        );
+    }
+
+    public function test_precalculated_analysis_preserves_penalties(): void {
+
+        $html = '
+            <img src="a.jpg">
+            <img src="b.jpg" alt="   ">
+        ';
+
+        $analysis = $this->analyzer->analyze($html);
+
+        $issues = $this->analyzer->get_issues(
+            $html,
+            $analysis
+        );
+
+        $this->assertCount(2, $issues);
+
+        $this->assertSame(
+            10,
+            $issues[0]['penalty']
+        );
+
+        $this->assertSame(
+            5,
+            $issues[1]['penalty']
+        );
+
+        $total_penalty = array_sum(
+            array_column($issues, 'penalty')
+        );
+
+        $this->assertSame(15, $total_penalty);
+    }
+
+    public function test_uses_precalculated_analysis_instead_of_parsing_html(): void {
+
+        $html = '<p>Tekst bez obrazków.</p>';
+
+        $analysis = [
+            'total' => 2,
+            'with_alt' => 0,
+            'empty_alt' => 0,
+            'missing_alt' => 2,
+            'whitespace_alt' => 0,
+        ];
+
+        $issues = $this->analyzer->get_issues(
+            $html,
+            $analysis
+        );
+
+        $this->assertCount(1, $issues);
+
+        $this->assertSame(
+            'Obrazy',
+            $issues[0]['category']
+        );
+
+        $this->assertSame(
+            10,
+            $issues[0]['penalty']
+        );
+    }
+
+    public function test_empty_precalculated_analysis_does_not_trigger_parsing(): void {
+
+        $html = '<img src="produkt.jpg">';
+
+        $this->expectException(\ErrorException::class);
+
+        set_error_handler(
+            static function (
+                int $severity,
+                string $message
+            ): never {
+                throw new \ErrorException($message, 0, $severity);
+            }
+        );
+
+        try {
+            $this->analyzer->get_issues($html, []);
+        } finally {
+            restore_error_handler();
+        }
+    }
 }
