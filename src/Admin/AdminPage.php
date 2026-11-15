@@ -132,6 +132,38 @@ class AdminPage {
         echo esc_html((string) $result->external_links);
         echo '</p>';
 
+        $issue_summary = $result->get_issue_summary();
+
+        echo '<h3>Podsumowanie problemów</h3>';
+
+        if (empty($issue_summary)) {
+
+            echo '<p>Nie wykryto problemów.</p>';
+
+        } else {
+
+            echo '<ul>';
+
+            foreach ($issue_summary as $category => $count) {
+
+                echo '<li>';
+
+                echo '<strong>';
+                echo esc_html($category);
+                echo ':</strong> ';
+
+                echo esc_html((string) $count);
+
+                echo '</li>';
+            }
+
+            echo '</ul>';
+
+            echo '<p><strong>Łącznie problemów:</strong> ';
+            echo esc_html((string) $result->get_issue_count());
+            echo '</p>';
+        }
+
         if (!empty($result->link_stats)) {
 
             $stats = $result->link_stats;

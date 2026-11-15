@@ -39,4 +39,26 @@ class AuditResult {
 
         return max(0, $score);
     }
+
+    public function get_issue_summary(): array {
+
+        $summary = [];
+
+        foreach ($this->issues as $issue) {
+
+            $category = $issue['category'];
+
+            if (!isset($summary[$category])) {
+                $summary[$category] = 0;
+            }
+
+            $summary[$category]++;
+        }
+
+        return $summary;
+    }
+
+    public function get_issue_count(): int {
+        return count($this->issues);
+    }
 }
