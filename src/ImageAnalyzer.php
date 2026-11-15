@@ -73,9 +73,12 @@ class ImageAnalyzer {
         return $result;
     }
 
-    public function get_issues(string $html): array {
+    public function get_issues(
+        string $html,
+        ?array $analysis = null
+    ): array {
 
-        $result = $this->analyze($html);
+        $result = $analysis ?? $this->analyze($html);
 
         $issues = [];
 

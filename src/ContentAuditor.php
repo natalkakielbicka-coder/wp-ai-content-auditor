@@ -90,7 +90,10 @@ class ContentAuditor {
         // Analiza obrazków i atrybutów ALT
         $images = $this->image_analyzer->analyze($content);
 
-        $image_issues = $this->image_analyzer->get_issues($content);
+        $image_issues = $this->image_analyzer->get_issues(
+            $content,
+            $images
+        );
 
         $issues = array_merge($issues, $image_issues);
 
