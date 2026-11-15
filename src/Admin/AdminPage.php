@@ -9,7 +9,7 @@ if (!defined('ABSPATH')) {
 }
 
 class AdminPage {
-    
+
     private ContentAuditor $auditor;
 
     public function __construct(ContentAuditor $auditor) {
@@ -92,21 +92,26 @@ class AdminPage {
         if ($selected_id > 0) {
 
             if (!in_array($selected_id, $posts, true)) {
+
                 echo '<div class="notice notice-error inline"><p>';
                 echo 'Nie znaleziono wybranej treści na liście.';
                 echo '</p></div>';
+
             } elseif (!current_user_can('edit_post', $selected_id)) {
+
                 echo '<div class="notice notice-error inline"><p>';
                 echo 'Nie masz uprawnień do analizy tej treści.';
                 echo '</p></div>';
+
             } else {
+
                 $this->render_result($selected_id);
             }
         }
 
         echo '</div>';
     }
-    
+
     private function render_result(int $post_id): void {
 
         $result = $this->auditor->audit($post_id);
@@ -116,6 +121,7 @@ class AdminPage {
         echo '<hr>';
         echo '<h2>Wynik audytu</h2>';
 
+        // Podstawowe informacje o treści
         echo '<p><strong>Tytuł:</strong> ';
         echo esc_html($result->title);
         echo '</p>';
@@ -123,6 +129,13 @@ class AdminPage {
         echo '<p><strong>Liczba słów:</strong> ';
         echo esc_html((string) $result->word_count);
         echo '</p>';
+
+        echo '<p><strong>Obrazek wyróżniający:</strong> ';
+        echo $result->has_thumbnail ? 'TAK' : 'NIE';
+        echo '</p>';
+
+        // Linki
+        echo '<h3>Linki</h3>';
 
         echo '<p><strong>Linki wewnętrzne:</strong> ';
         echo esc_html((string) $result->internal_links);
@@ -132,6 +145,138 @@ class AdminPage {
         echo esc_html((string) $result->external_links);
         echo '</p>';
 
+        if (!empty($result->link_stats)) {
+
+            $stats = $result->link_stats;
+
+            echo '<p><strong>Unikalne linki wewnętrzne:</strong> ';
+            echo esc_html((string) $stats['internal_unique']);
+            echo '</p>';
+
+            echo '<p><strong>Powtórzenia linków wewnętrznych:</strong> ';
+            echo esc_html((string) $stats['internal_repeated']);
+            echo '</p>';
+
+            echo '<p><strong>Unikalne linki zewnętrzne:</strong> ';
+            echo esc_html((string) $stats['external_unique']);
+            echo '</p>';
+
+            echo '<p><strong>Powtórzenia linków zewnętrznych:</strong> ';
+            echo esc_html((string) $stats['external_repeated']);
+            echo '</p>';
+        }
+
+        // Obrazki i atrybuty ALT
+        if (!empty($result->images)) {
+
+            $images = $result->images;
+
+            echo '<h3>Analiza obrazków</h3>';
+
+            echo '<p><strong>Wszystkie obrazki:</strong> ';
+            echo esc_html((string) $images['total']);
+            echo '</p>';
+
+            echo '<p><strong>Z opisem ALT:</strong> ';
+            echo esc_html((string) $images['with_alt']);
+            echo '</p>';
+
+            echo '<p><strong>Z pustym ALT:</strong> ';
+            echo esc_html((string) $images['empty_alt']);
+            echo '</p>';
+
+            echo '<p><strong>Bez atrybutu ALT:</strong> ';
+            echo esc_html((string) $images['missing_alt']);
+            echo '</p>';
+
+            echo '<p><strong>ALT zawierający tylko spacje:</strong> ';
+            echo esc_html((string) $images['whitespace_alt']);
+            echo '</p>';
+        }
+
+        // Metadane SEO
+        if (!empty($result->seo_meta)) {
+
+            $meta = $result->seo_meta;
+
+            echo '<hr>';
+            echo '<h2>Metadane SEO</h2>';
+
+            if ($meta['provider'] !== 'yoast') {
+
+                echo '<p>Yoast SEO nie jest aktywny.</p>';
+
+            } else {
+
+                $length_labels = [
+                    'short' => 'Tekst może być zbyt krótki.',
+                    'ok' => 'Długość mieści się w orientacyjnym zakresie.',
+                    'long' => 'Tekst może być zbyt długi.',
+                    'not_checked' => 'Nie oceniono długości.',
+                ];
+
+                echo '<p><strong>SEO Title:</strong> ';
+
+                if ($meta['title_status'] === 'custom') {
+                    echo esc_html($meta['title']);
+                } else {
+                    echo 'Brak indywidualnej wartości (szablon Yoast).';
+                }
+
+                echo '</p>';
+
+                echo '<p><strong>Długość zapisanego tytułu:</strong> ';
+                echo esc_html((string) $meta['title_length']);
+                echo ' znaków</p>';
+
+                $title_length_status = $meta['title_length_status']
+                    ?? 'not_checked';
+
+                echo '<p><strong>Ocena długości tytułu:</strong> ';
+                echo esc_html(
+                    $length_labels[$title_length_status]
+                        ?? $length_labels['not_checked']
+                );
+                echo '</p>';
+
+                echo '<p><strong>Meta Description:</strong> ';
+
+                if ($meta['description_status'] === 'custom') {
+                    echo esc_html($meta['description']);
+                } else {
+                    echo 'Brak indywidualnej wartości (możliwy fallback).';
+                }
+
+                echo '</p>';
+
+                echo '<p><strong>Długość zapisanego opisu:</strong> ';
+                echo esc_html((string) $meta['description_length']);
+                echo ' znaków</p>';
+
+                $description_length_status = $meta['description_length_status']
+                    ?? 'not_checked';
+
+                echo '<p><strong>Ocena długości opisu:</strong> ';
+                echo esc_html(
+                    $length_labels[$description_length_status]
+                        ?? $length_labels['not_checked']
+                );
+                echo '</p>';
+            }
+        }
+
+        // Ocena końcowa
+        echo '<hr>';
+
+        echo '<h2>Ocena treści: ';
+        echo esc_html((string) $score);
+        echo '/100</h2>';
+
+        echo '<p><strong>Liczba problemów:</strong> ';
+        echo esc_html((string) $result->get_issues_count());
+        echo '</p>';
+
+        // Podsumowanie problemów według kategorii
         $issue_summary = $result->get_issue_summary();
 
         echo '<h3>Podsumowanie problemów</h3>';
@@ -158,115 +303,9 @@ class AdminPage {
             }
 
             echo '</ul>';
-
-            echo '<p><strong>Łącznie problemów:</strong> ';
-            echo esc_html((string) $result->get_issue_count());
-            echo '</p>';
         }
 
-        if (!empty($result->link_stats)) {
-
-            $stats = $result->link_stats;
-
-            echo '<h3>Statystyki linków</h3>';
-
-            echo '<p><strong>Unikalne linki wewnętrzne:</strong> ';
-            echo esc_html((string) $stats['internal_unique']);
-            echo '</p>';
-
-            echo '<p><strong>Powtórzenia linków wewnętrznych:</strong> ';
-            echo esc_html((string) $stats['internal_repeated']);
-            echo '</p>';
-
-            echo '<p><strong>Unikalne linki zewnętrzne:</strong> ';
-            echo esc_html((string) $stats['external_unique']);
-            echo '</p>';
-
-            echo '<p><strong>Powtórzenia linków zewnętrznych:</strong> ';
-            echo esc_html((string) $stats['external_repeated']);
-            echo '</p>';
-        }
-
-        if (!empty($result->images)) {
-
-            echo '<h3>Analiza obrazków</h3>';
-
-            echo '<p><strong>Wszystkie obrazki:</strong> ';
-            echo esc_html((string) $result->images['total']);
-            echo '</p>';
-
-            echo '<p><strong>Z opisem ALT:</strong> ';
-            echo esc_html((string) $result->images['with_alt']);
-            echo '</p>';
-
-            echo '<p><strong>Z pustym ALT:</strong> ';
-            echo esc_html((string) $result->images['empty_alt']);
-            echo '</p>';
-
-            echo '<p><strong>Bez atrybutu ALT:</strong> ';
-            echo esc_html((string) $result->images['missing_alt']);
-            echo '</p>';
-
-            echo '<p><strong>ALT zawierający tylko spacje:</strong> ';
-            echo esc_html((string) $result->images['whitespace_alt']);
-            echo '</p>';
-        }
-
-        if (!empty($result->seo_meta)) {
-
-            $meta = $result->seo_meta;
-
-            echo '<hr>';
-            echo '<h2>Metadane SEO</h2>';
-
-            if ($meta['provider'] !== 'yoast') {
-
-                echo '<p>Yoast SEO nie jest aktywny.</p>';
-
-            } else {
-
-                echo '<p><strong>SEO Title:</strong> ';
-
-                if ($meta['title_status'] === 'custom') {
-                    echo esc_html($meta['title']);
-                } else {
-                    echo 'Brak indywidualnej wartości (szablon Yoast).';
-                }
-
-                echo '</p>';
-
-                echo '<p><strong>Długość zapisanego tytułu:</strong> ';
-                echo esc_html((string) $meta['title_length']);
-                echo ' znaków</p>';
-
-                echo '<p><strong>Meta Description:</strong> ';
-
-                if ($meta['description_status'] === 'custom') {
-                    echo esc_html($meta['description']);
-                } else {
-                    echo 'Brak indywidualnej wartości (możliwy fallback).';
-                }
-
-                echo '</p>';
-
-                echo '<p><strong>Długość zapisanego opisu:</strong> ';
-                echo esc_html((string) $meta['description_length']);
-                echo ' znaków</p>';
-            }
-        }
-
-        echo '<p><strong>Obrazek wyróżniający:</strong> ';
-        echo $result->has_thumbnail ? 'TAK' : 'NIE';
-        echo '</p>';
-
-        echo '<h2>Ocena treści: ';
-        echo esc_html((string) $score);
-        echo '/100</h2>';
-
-        echo '<p><strong>Liczba problemów:</strong> ';
-        echo esc_html((string) $result->get_issues_count());
-        echo '</p>';
-
+        // Szczegółowa lista problemów
         if ($result->has_issues()) {
 
             echo '<h3>Wykryte problemy</h3>';
