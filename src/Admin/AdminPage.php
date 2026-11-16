@@ -11,9 +11,14 @@ if (!defined('ABSPATH')) {
 class AdminPage {
 
     private ContentAuditor $auditor;
+    private ResultRenderer $renderer;
 
-    public function __construct(ContentAuditor $auditor) {
+    public function __construct(
+        ContentAuditor $auditor,
+        ?ResultRenderer $renderer = null
+    ) {
         $this->auditor = $auditor;
+        $this->renderer = $renderer ?? new ResultRenderer();
     }
 
     public function register(): void {
@@ -105,234 +110,12 @@ class AdminPage {
 
             } else {
 
-                $this->render_result($selected_id);
+                $result = $this->auditor->audit($selected_id);
+
+                $this->renderer->render($result);
             }
         }
 
         echo '</div>';
-    }
-
-    private function render_result(int $post_id): void {
-
-        $result = $this->auditor->audit($post_id);
-
-        $score = $result->get_score();
-
-        echo '<hr>';
-        echo '<h2>Wynik audytu</h2>';
-
-        // Podstawowe informacje o treści
-        echo '<p><strong>Tytuł:</strong> ';
-        echo esc_html($result->title);
-        echo '</p>';
-
-        echo '<p><strong>Liczba słów:</strong> ';
-        echo esc_html((string) $result->word_count);
-        echo '</p>';
-
-        echo '<p><strong>Obrazek wyróżniający:</strong> ';
-        echo $result->has_thumbnail ? 'TAK' : 'NIE';
-        echo '</p>';
-
-        // Linki
-        echo '<h3>Linki</h3>';
-
-        echo '<p><strong>Linki wewnętrzne:</strong> ';
-        echo esc_html((string) $result->internal_links);
-        echo '</p>';
-
-        echo '<p><strong>Linki zewnętrzne:</strong> ';
-        echo esc_html((string) $result->external_links);
-        echo '</p>';
-
-        if (!empty($result->link_stats)) {
-
-            $stats = $result->link_stats;
-
-            echo '<p><strong>Unikalne linki wewnętrzne:</strong> ';
-            echo esc_html((string) $stats['internal_unique']);
-            echo '</p>';
-
-            echo '<p><strong>Powtórzenia linków wewnętrznych:</strong> ';
-            echo esc_html((string) $stats['internal_repeated']);
-            echo '</p>';
-
-            echo '<p><strong>Unikalne linki zewnętrzne:</strong> ';
-            echo esc_html((string) $stats['external_unique']);
-            echo '</p>';
-
-            echo '<p><strong>Powtórzenia linków zewnętrznych:</strong> ';
-            echo esc_html((string) $stats['external_repeated']);
-            echo '</p>';
-        }
-
-        // Obrazki i atrybuty ALT
-        if (!empty($result->images)) {
-
-            $images = $result->images;
-
-            echo '<h3>Analiza obrazków</h3>';
-
-            echo '<p><strong>Wszystkie obrazki:</strong> ';
-            echo esc_html((string) $images['total']);
-            echo '</p>';
-
-            echo '<p><strong>Z opisem ALT:</strong> ';
-            echo esc_html((string) $images['with_alt']);
-            echo '</p>';
-
-            echo '<p><strong>Z pustym ALT:</strong> ';
-            echo esc_html((string) $images['empty_alt']);
-            echo '</p>';
-
-            echo '<p><strong>Bez atrybutu ALT:</strong> ';
-            echo esc_html((string) $images['missing_alt']);
-            echo '</p>';
-
-            echo '<p><strong>ALT zawierający tylko spacje:</strong> ';
-            echo esc_html((string) $images['whitespace_alt']);
-            echo '</p>';
-        }
-
-        // Metadane SEO
-        if (!empty($result->seo_meta)) {
-
-            $meta = $result->seo_meta;
-
-            echo '<hr>';
-            echo '<h2>Metadane SEO</h2>';
-
-            if ($meta['provider'] !== 'yoast') {
-
-                echo '<p>Yoast SEO nie jest aktywny.</p>';
-
-            } else {
-
-                $length_labels = [
-                    'short' => 'Tekst może być zbyt krótki.',
-                    'ok' => 'Długość mieści się w orientacyjnym zakresie.',
-                    'long' => 'Tekst może być zbyt długi.',
-                    'not_checked' => 'Nie oceniono długości.',
-                ];
-
-                echo '<p><strong>SEO Title:</strong> ';
-
-                if ($meta['title_status'] === 'custom') {
-                    echo esc_html($meta['title']);
-                } else {
-                    echo 'Brak indywidualnej wartości (szablon Yoast).';
-                }
-
-                echo '</p>';
-
-                echo '<p><strong>Długość zapisanego tytułu:</strong> ';
-                echo esc_html((string) $meta['title_length']);
-                echo ' znaków</p>';
-
-                $title_length_status = $meta['title_length_status']
-                    ?? 'not_checked';
-
-                echo '<p><strong>Ocena długości tytułu:</strong> ';
-                echo esc_html(
-                    $length_labels[$title_length_status]
-                        ?? $length_labels['not_checked']
-                );
-                echo '</p>';
-
-                echo '<p><strong>Meta Description:</strong> ';
-
-                if ($meta['description_status'] === 'custom') {
-                    echo esc_html($meta['description']);
-                } else {
-                    echo 'Brak indywidualnej wartości (możliwy fallback).';
-                }
-
-                echo '</p>';
-
-                echo '<p><strong>Długość zapisanego opisu:</strong> ';
-                echo esc_html((string) $meta['description_length']);
-                echo ' znaków</p>';
-
-                $description_length_status = $meta['description_length_status']
-                    ?? 'not_checked';
-
-                echo '<p><strong>Ocena długości opisu:</strong> ';
-                echo esc_html(
-                    $length_labels[$description_length_status]
-                        ?? $length_labels['not_checked']
-                );
-                echo '</p>';
-            }
-        }
-
-        // Ocena końcowa
-        echo '<hr>';
-
-        echo '<h2>Ocena treści: ';
-        echo esc_html((string) $score);
-        echo '/100</h2>';
-
-        echo '<p><strong>Liczba problemów:</strong> ';
-        echo esc_html((string) $result->get_issues_count());
-        echo '</p>';
-
-        // Podsumowanie problemów według kategorii
-        $issue_summary = $result->get_issue_summary();
-
-        echo '<h3>Podsumowanie problemów</h3>';
-
-        if (empty($issue_summary)) {
-
-            echo '<p>Nie wykryto problemów.</p>';
-
-        } else {
-
-            echo '<ul>';
-
-            foreach ($issue_summary as $category => $count) {
-
-                echo '<li>';
-
-                echo '<strong>';
-                echo esc_html($category);
-                echo ':</strong> ';
-
-                echo esc_html((string) $count);
-
-                echo '</li>';
-            }
-
-            echo '</ul>';
-        }
-
-        // Szczegółowa lista problemów
-        if ($result->has_issues()) {
-
-            echo '<h3>Wykryte problemy</h3>';
-            echo '<ul>';
-
-            foreach ($result->issues as $issue) {
-
-                echo '<li>';
-
-                echo '<strong>';
-                echo esc_html($issue['category']);
-                echo ':</strong> ';
-
-                echo esc_html($issue['message']);
-
-                echo ' (-';
-                echo esc_html((string) $issue['penalty']);
-                echo ' pkt)';
-
-                echo '</li>';
-            }
-
-            echo '</ul>';
-
-        } else {
-
-            echo '<p>Nie wykryto problemów w podstawowym audycie.</p>';
-        }
     }
 }
